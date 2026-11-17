@@ -1,0 +1,94 @@
+generator client {
+    provider = "prisma-client"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model TestUser {
+    id        Int      @id @default(autoincrement())
+    email     String   @unique
+    password  String
+    createdAt DateTime @default(now())
+}
+
+model User {
+    id        Int      @id @default(autoincrement())
+    email     String   @unique
+    nickname  String   @unique
+    password  String
+    refreshToken RefreshToken[]
+    rooms     Room[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model RefreshToken {
+    id        Int      @id @default(autoincrement())
+    token     String   @unique
+    userId    Int
+    user      User     @relation(fields: [userId], references: [id])
+    createdAt DateTime @default(now())
+    expiresAt DateTime
+}
+
+model Quiz {
+    id            Int @id @default(autoincrement())
+    slug          String @unique
+    title         String
+    tagline       String
+    description   String
+    image_url     String @default("")
+    category      String
+    difficulty    String
+    questions     Question[]
+    duration      Int
+    is_popular    Boolean @default(false)
+    is_new        Boolean @default(false)
+    createdAt     DateTime @default(now())
+}
+
+model Question {
+    id          Int      @id @default(autoincrement())
+    quizId      Int
+    quiz        Quiz     @relation(fields: [quizId], references: [id])
+    question    String
+    options     QuestionOption[]
+    answer_id   Int
+    is_sample   Boolean  @default(false)
+    createdAt   DateTime @default(now())
+}
+
+model QuestionOption {
+    id          Int      @id @default(autoincrement())
+    questionId  Int
+    question    Question @relation(fields: [questionId], references: [id])
+    option      String
+    createdAt   DateTime @default(now())
+}
+
+model Room {
+    id        String   @id @default(cuid())
+    userId    Int
+    user      User     @relation(fields: [userId], references: [id])
+    slug      String
+    code      String   @unique
+    linkCode  String   @unique
+    hostToken String   @unique
+    createdAt DateTime @default(now())
+    players   Player[]
+}
+
+model Player {
+    id        String   @id @default(cuid())
+    roomId    String
+    room      Room     @relation(fields: [roomId], references: [id])
+    token     String   @unique
+    name      String
+    emoji_id  Int      @default(0)
+    color_id  Int      @default(0)
+    createdAt DateTime @default(now())
+}
+
