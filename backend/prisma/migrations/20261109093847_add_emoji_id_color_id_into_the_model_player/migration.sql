@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Player" ADD COLUMN     "color_id" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "emoji_id" INTEGER NOT NULL DEFAULT 0;
