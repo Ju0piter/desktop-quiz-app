@@ -16,7 +16,7 @@ export const activeGames = new Map<string, GameSession>();
 export function startQuestion(linkCode: string, game: GameSession) {
 
     const question = game.questions[game.currentIndex]
-    const durationMs = 3_000
+    const durationMs = 20_000
 
     game.phase = 'QUESTION'
     game.answers.forEach(( _ , player_id) => {
@@ -43,7 +43,7 @@ function revealAnswer(linkCode: string, game: GameSession) {
     if (game.timer) clearTimeout(game.timer)
 
     const question = game.questions[game.currentIndex]
-    const revealDurationMs = 1_000
+    const revealDurationMs = 5_000
 
     game.phase = 'REVEAL'
     game.endsAt = Date.now() + revealDurationMs

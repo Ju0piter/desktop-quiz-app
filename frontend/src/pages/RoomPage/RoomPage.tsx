@@ -70,7 +70,7 @@ export default function RoomPage () {
                 setShowStartBanner(true)
                 setTimeout(() => {
                     setShowStartBanner(false)
-                }, 5_000)
+                }, 18_000)
             }
             if (msg.type === 'start-questions') setIsQuestionsStarted(true)
             if (msg.type === 'new-question') {

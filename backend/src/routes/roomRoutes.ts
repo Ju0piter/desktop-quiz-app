@@ -157,7 +157,7 @@ export async function roomRoutes (app: FastifyInstance) {
                             setTimeout(()=> {
                                 broadcast(linkCode, { type: 'start-questions' })
                                 startQuestion(linkCode, activeGames.get(linkCode)!)
-                            }, 10_000)
+                            }, 20_000)
                         }    
                     }
                     return
