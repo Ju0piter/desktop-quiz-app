@@ -1,5 +1,3 @@
-import { API_URL } from "../config";
-
 export async function apiFetch(
     path: string,
     options: RequestInit = {},
@@ -13,5 +11,5 @@ export async function apiFetch(
         headers.set("Authorization",`Bearer ${token}`,);
     }
 
-    return fetch(`${API_URL}${path}`, {...options,headers,});
+    return fetch(path, {...options,headers,});
 }

@@ -49,7 +49,8 @@ export default function RoomPage () {
 
         const { token } = JSON.parse(stored)
         setStoredToken(token)
-        const ws = new WebSocket(`ws://${location.host}/ws/room/${linkCode}`)
+        const protocol = location.protocol === "https:" ? "wss" : "ws"
+        const ws = new WebSocket(`${protocol}://${location.host}/ws/room/${linkCode}`)
         wsRef.current = ws
 
         ws.onopen = () => ws.send(JSON.stringify({ type: 'join', token }))
@@ -134,7 +135,7 @@ export default function RoomPage () {
                                     <h2 className='gradient-text'>QR-код</h2>
                                     <div className="qr-code">
                                         <QRCodeSVG
-                                            value={`https://quiz.arena/join?code=${code?.toUpperCase()}`}
+                                            value={`https://quizzi.club/join?code=${code?.toUpperCase()}`}
                                             size={220}
                                             bgColor={"#ffffff00"}
                                             fgColor={"#ffffffd7"}

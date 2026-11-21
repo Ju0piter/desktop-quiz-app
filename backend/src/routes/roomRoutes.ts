@@ -188,6 +188,7 @@ export async function roomRoutes (app: FastifyInstance) {
                 broadcastPresence(linkCode)
                 if (roomClients.get(linkCode)?.size === 0) {
                     roomClients.delete(linkCode)
+                    prisma.room.delete({where: {linkCode: linkCode}})
                 }
             })
 
