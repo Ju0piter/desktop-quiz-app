@@ -3,23 +3,24 @@ import { useState, useEffect } from 'react';
 import { createPortal } from "react-dom"
 
 export default function OrientationOverlay() {
-    const [isPortraitMobile, setIsPortraitMobile] = useState(false);
+
+    const [isPortraitMobile, setIsPortraitMobile] = useState(() => {
+        if (typeof window === 'undefined') return false
+        return window.matchMedia('(orientation: portrait) and (max-width: 800px)').matches;
+    })
 
     useEffect(() => {
-        const mediaQuery = window.matchMedia('(orientation: portrait) and (max-width: 800px)');
-
-        setIsPortraitMobile(mediaQuery.matches);
+        const mediaQuery = window.matchMedia('(orientation: portrait) and (max-width: 800px)')
 
         const handleOrientationChange = (e: MediaQueryListEvent) => {
-        setIsPortraitMobile(e.matches);
-        };
+            setIsPortraitMobile(e.matches);
+        }
 
-        mediaQuery.addEventListener('change', handleOrientationChange);
-        
-        return () => mediaQuery.removeEventListener('change', handleOrientationChange);
-    }, []);
+        mediaQuery.addEventListener('change', handleOrientationChange)
+        return () => mediaQuery.removeEventListener('change', handleOrientationChange)
+    }, [])
 
-    if (!isPortraitMobile) return null;
+    if (!isPortraitMobile) return null
 
     return (
         createPortal(

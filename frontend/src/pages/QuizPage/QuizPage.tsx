@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createPortal } from "react-dom"
 
-
 import NotFoundPage from '../NotFoundPage/NotFoundPage';
 import Topbar from '../../components/Topbar/Topbar';
 import { getQuiz } from '../../api/quiz';
 import type { Quiz } from "../../types/quiz";
-import { useAuth } from "../../context/AuthContext"
+import { useAuth } from "../../context/useAuth"
 import { createRoom } from '../../api/room';
 
 function AuthWarning ({onClose}: {onClose: () => void}) {
@@ -30,9 +29,7 @@ function AuthWarning ({onClose}: {onClose: () => void}) {
 
 export default function QuizPage () {
     const { user, accessToken, logout } = useAuth()
-    const { slug } = useParams <{slug: string}>()
-    if (!slug || Number(slug) || slug.length <= 3) { return (<NotFoundPage />) }
-    
+    const { slug } = useParams <{slug: string}>()    
     const navigate = useNavigate();
     const [quiz, setQuiz] = useState<Quiz> ()
     const [isLoading, setIsLoading] = useState<boolean> (true)
@@ -40,22 +37,8 @@ export default function QuizPage () {
     const [error, setError] = useState<string|null> (null)
     const letters = ["A","B","C","D"]
 
-    const handlePlayClick = async () => {
-        if (!user) {
-            setShowWarningAuth(true)
-        } else {
-            let createRoomData = await createRoom(slug, accessToken! )
-            if (createRoomData) {
-                localStorage.setItem(`room:${createRoomData.linkCode}`, JSON.stringify({ token: createRoomData.hostToken }))
-                navigate(`/room/${createRoomData.linkCode}`)
-            } else {
-                logout()
-                setShowWarningAuth(true)
-            }
-        }
-    }
-
     useEffect(() => {
+        if (!slug || Number(slug) || slug.length <= 3) return
         const LoadQuiz = async () => {
             try{
                 setIsLoading(true)
@@ -69,8 +52,24 @@ export default function QuizPage () {
             }
         }
         LoadQuiz()
-    },[]);
+    },[slug])
 
+    if (!slug || Number(slug) || slug.length <= 3) return (<NotFoundPage />)
+
+    const handlePlayClick = async () => {
+        if (!user) {
+            setShowWarningAuth(true)
+        } else {
+            const createRoomData = await createRoom(slug, accessToken! )
+            if (createRoomData) {
+                localStorage.setItem(`room:${createRoomData.linkCode}`, JSON.stringify({ token: createRoomData.hostToken }))
+                navigate(`/room/${createRoomData.linkCode}`)
+            } else {
+                logout()
+                setShowWarningAuth(true)
+            }
+        }
+    }
 
     return(
         <main className="quiz-page">

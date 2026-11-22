@@ -13,6 +13,53 @@ interface JoinFormData {
 type JoinStatus = "inProcess" | "unsuccessfull"
 type EmojiStatus = "inProcess" | "selected"
 
+interface ChangeUserEmojiProps {
+    userEmojiId: number,
+    userColorId: number,
+    onEmojiChange: (id: number) => void,
+    onColorChange: (id: number) => void,
+    onClose: () => void
+}
+
+function ChangeUserEmoji ({ userEmojiId, userColorId, onEmojiChange, onColorChange, onClose,}: ChangeUserEmojiProps) {
+    return (
+        createPortal(
+            <div className="overlay-set-emoji">
+                <div className="set-emoji-window brd">
+                    <h3 className='gradient-text'>Выбирай свой аватар!</h3>
+                    <div className="current-emoji emoji brd" style={{backgroundColor: PLAYER_COLORS[userColorId] }}>{EMOJIS[userEmojiId]}</div>
+                    <div className="emojis-list">
+                        {EMOJIS.map((emoji, index) => (
+                            <div 
+                                className={`emoji brd ${index === userEmojiId? "correct-set" : ""}`} 
+                                key={index}
+                                onClick={(() => (onEmojiChange(index)))}>
+                                {emoji}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="colors-list">
+                        {PLAYER_COLORS.map((color, index) => (
+                            <div 
+                                className={`color brd ${index === userColorId? "correct-set" : ""}`} 
+                                key={index}
+                                style={{backgroundColor: color }}
+                                onClick={(() => (onColorChange(index)))}>
+                                
+                            </div>
+                        ))}
+                    </div>
+                    <button 
+                        className="set-emoji-button"
+                        onClick={onClose}>
+                        Применить изменения
+                    </button>
+                </div>
+            </div>, document.body   
+        )
+    )
+}
+
 export default function JoinPage () {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -23,8 +70,8 @@ export default function JoinPage () {
         name: "",
         code: searchParamsCode? searchParamsCode : ""
     })
-    const [userEmojiId, setUserEmojiId] = useState (Math.floor(Math.random() * 12))
-    const [userColorId, setUserColorId] = useState (Math.floor(Math.random() * 12))
+    const [userEmojiId, setUserEmojiId] = useState<number>(() => Math.floor(Math.random() * 12))
+    const [userColorId, setUserColorId] = useState<number>(() => Math.floor(Math.random() * 12))
     const [emojiSelectionStatus, setEmojiSelectionStatus] = useState<EmojiStatus> ("selected")
     
     function handleChange (e: React.ChangeEvent<HTMLInputElement>) {
@@ -45,45 +92,6 @@ export default function JoinPage () {
         } else {
             setStatus("unsuccessfull")
         }
-    }
-
-    function ChangeUserEmoji () {
-        return (
-            createPortal(
-                <div className="overlay-set-emoji">
-                    <div className="set-emoji-window brd">
-                        <h3 className='gradient-text'>Выбирай свой аватар!</h3>
-                        <div className="current-emoji emoji brd" style={{backgroundColor: PLAYER_COLORS[userColorId] }}>{EMOJIS[userEmojiId]}</div>
-                        <div className="emojis-list">
-                            {EMOJIS.map((emoji, index) => (
-                                <div 
-                                    className={`emoji brd ${index === userEmojiId? "correct-set" : ""}`} 
-                                    key={index}
-                                    onClick={(() => (setUserEmojiId(index)))}>
-                                    {emoji}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="colors-list">
-                            {PLAYER_COLORS.map((color, index) => (
-                                <div 
-                                    className={`color brd ${index === userColorId? "correct-set" : ""}`} 
-                                    key={index}
-                                    style={{backgroundColor: color }}
-                                    onClick={(() => (setUserColorId(index)))}>
-                                    
-                                </div>
-                            ))}
-                        </div>
-                        <button 
-                            className="set-emoji-button"
-                            onClick={(() => (setEmojiSelectionStatus("selected")))}>
-                            Применить изменения
-                        </button>
-                    </div>
-                </div>, document.body   
-            )
-        )
     }
 
     return(
@@ -123,7 +131,15 @@ export default function JoinPage () {
                     ПРИСОЕДИНИТЬСЯ
                 </button>
             </form>
-            {emojiSelectionStatus === "inProcess" && <ChangeUserEmoji />}
+            {emojiSelectionStatus === "inProcess" && (
+                <ChangeUserEmoji 
+                    userEmojiId={userEmojiId}
+                    userColorId={userColorId}
+                    onEmojiChange={setUserEmojiId}
+                    onColorChange={setUserColorId}
+                    onClose={() => setEmojiSelectionStatus("selected")}
+                />
+            )}
         </main>
     )
 }

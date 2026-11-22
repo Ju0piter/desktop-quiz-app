@@ -23,7 +23,16 @@ export default function RoomPage () {
     const [timerQuestionEndsAt, setTimerQuestionEndsAt] = useState<number | null>(null);
     const letters = ["A","B","C","D"]
     const { linkCode } = useParams<{linkCode: string}>()
-    const [storedToken, setStoredToken] = useState<string|null> (null)
+    const storedToken = (() => {
+        try {
+            const stored = localStorage.getItem(`room:${linkCode}`);
+            if (!stored) return null;
+            const { token } = JSON.parse(stored);
+            return token;
+        } catch {
+            return null;
+        }
+    })()
     const [role, setRole] = useState<'host'|'player'|null>(null)
     const [code, setCode] = useState<string|null>(null)
     const [players, setPlayers] = useState<{playerId:string;name:string; emoji_id: number, color_id: number, is_master_player: boolean}[]>([])
@@ -41,19 +50,15 @@ export default function RoomPage () {
 
     useEffect(() => {
         
-        const stored = localStorage.getItem(`room:${linkCode}`)
-        if (!stored) {
+        if (!storedToken) {
             navigate("/")
             return
         }
-
-        const { token } = JSON.parse(stored)
-        setStoredToken(token)
         const protocol = location.protocol === "https:" ? "wss" : "ws"
         const ws = new WebSocket(`${protocol}://${location.host}/ws/room/${linkCode}`)
         wsRef.current = ws
-
-        ws.onopen = () => ws.send(JSON.stringify({ type: 'join', token }))
+        console.log(storedToken)
+        ws.onopen = () => ws.send(JSON.stringify({ type: 'join', token: storedToken }))
         ws.onmessage = (e) => {
             const msg: ServerMessage = JSON.parse(e.data)
             if (msg.type === 'joined')  { 
@@ -100,7 +105,7 @@ export default function RoomPage () {
             ws.close()
             wsRef.current = null
         }
-    }, [linkCode])
+    }, [linkCode, navigate, storedToken])
 
 
     return (

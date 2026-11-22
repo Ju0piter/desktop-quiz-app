@@ -2,7 +2,7 @@ import "./Topbar.css"
 import { useState } from "react"
 import { createPortal } from "react-dom"
 import { registerUser, loginUser } from "../../api/auth"
-import { useAuth } from "../../context/AuthContext"
+import { useAuth } from "../../context/useAuth"
 import type { UserLoginResponse } from "../../types/user"
 
 interface AuthFormData {
