@@ -39,3 +39,12 @@
     background: linear-gradient(45deg, #008cff, #ff00ff);
     border-color: rgba(44, 44, 44, 0.774);
 }
+
+@media (max-width: 800px) {
+    .searchbar-input{
+        width: 96%;
+    }
+    .searchbar-tag{
+        min-width: 100px;
+    }
+}

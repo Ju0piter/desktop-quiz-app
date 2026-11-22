@@ -48,8 +48,6 @@ function revealAnswer(linkCode: string, game: GameSession) {
     game.phase = 'REVEAL'
     game.endsAt = Date.now() + revealDurationMs
 
-    // Тут логика начисления очков игрокам из game.answers...
-
     broadcast(linkCode, {
         type: 'round-result',
         correctAnswerId: question.answer_id,

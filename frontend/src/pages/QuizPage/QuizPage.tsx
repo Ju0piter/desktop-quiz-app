@@ -30,7 +30,7 @@ function AuthWarning ({onClose}: {onClose: () => void}) {
 
 export default function QuizPage () {
     const { user, accessToken, logout } = useAuth()
-    const { slug } = useParams <{slug: string}>() // <--- подгружать slug[] и проходить валидацию на них
+    const { slug } = useParams <{slug: string}>()
     if (!slug || Number(slug) || slug.length <= 3) { return (<NotFoundPage />) }
     
     const navigate = useNavigate();

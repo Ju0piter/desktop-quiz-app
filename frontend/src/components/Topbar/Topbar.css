@@ -3,6 +3,7 @@
     backdrop-filter: blur(20px);
     padding: 5px;
     display: flex;
+    align-items: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     height: 81px;
 }
@@ -27,7 +28,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: rgb(253, 241, 170); 
-    margin-top: 10px;
 }
 
 .topbar-user{
@@ -36,23 +36,25 @@
     border-radius: 20px;
     margin-left: auto;
     margin-right: 10px;
-    margin-top: 5px;
     display: flex;
     flex-direction: column;
+    align-items: center;
 }
 
 .user-info {
     position: relative;
+    width: 100%;
 }
 
 .user {
     position: absolute;
+    display: flex;
     width: 100%;
     height: 58px;
-    padding-top: 12px;
     font-size: 1.2rem;
     font-weight: 500;
-    text-align: center;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
     z-index: 2;
     border: 1px solid rgb(46, 46, 46);
@@ -195,11 +197,39 @@
     height: 100%;
     display: flex;
     justify-content: center;
-    padding-top: 12px;
     font-size: 1.2rem;
     font-weight: 500;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 20px;
 }
 
+
+@media (max-width: 800px) {
+    .topbar{
+        height: 60px;
+    }
+
+    .topbar-logo{
+        width: 35px;
+        height: 50px;
+    }
+
+    .topbar-name{
+        font-size: 1rem;
+    }
+
+    .topbar-user{
+        width: 195px;
+        height: 45px;
+    }
+
+    .user{
+        height: 45px;
+    }
+
+    
+}
 
 
 

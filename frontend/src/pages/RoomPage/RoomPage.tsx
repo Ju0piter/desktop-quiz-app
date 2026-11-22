@@ -118,7 +118,7 @@ export default function RoomPage () {
                                 </Link>
                                 <div className="blue-text mrgn">ПОДКЛЮЧЕНИЕ К ИГРЕ</div>
                                 <div className="hero-title">Возьмите телефон,</div>
-                                <div className="hero-title">откройте <strong className='gradient-text'>quiz.arena/join</strong></div>
+                                <div className="hero-title">откройте <strong className='gradient-text'>quizzi.club/join</strong></div>
                                 <div className="hero-title">и введите код</div>
                                 <div className="hero-description mrgn">Никаких приложений — просто введите код комнаты на сайте.</div>
                                 <div className="hero-description">Первый, кто подключится к комнате, становится ведущим.</div>

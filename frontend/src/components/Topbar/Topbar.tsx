@@ -112,7 +112,7 @@ export default function Topbar () {
     return(
         <div className="topbar">
             <div className="topbar-logo"></div>
-            <h1 className="topbar-name">КВИЗ АРЕНА</h1>
+            <h1 className="topbar-name">quizzi.club</h1>
             <div className="topbar-user">
                 {user? (
                     <div className="user-info">
@@ -134,7 +134,7 @@ export default function Topbar () {
                     </div>
 
                 ): (
-                    <div className="link-auth" onClick={(() => {setIsAuthOpen(true)})}>
+                    <div className="link-auth brd" onClick={(() => {setIsAuthOpen(true)})}>
                         Регистрация / Вход
                     </div>
                 )}
