@@ -1,12 +1,9 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { prisma } from "../lib/prisma.js";
 import type { Quiz }  from "../types/quiz.js";
+import { SlugDataSchema } from '../schemas/quiz.js';
 
-interface quizParams {
-    slug: string
-}
-
-export async function quizzesRoutes (app: FastifyInstance) {
+export const quizzesRoutes: FastifyPluginAsyncTypebox = async (app) => {
     app.get("/api/quiz-list", async (request, reply) => {
         try {
             const quizzes = await prisma.quiz.findMany({
@@ -35,10 +32,11 @@ export async function quizzesRoutes (app: FastifyInstance) {
             }
     });
 
-    app.get<{Params: quizParams}>("/api/quiz/:slug", async (request, reply) => {
+    app.get("/api/quiz/:slug", {
+        schema: { params: SlugDataSchema }
+    }, async (request, reply) => {
 
-        const slugParams = request.params.slug //  <---- проверка на валидность
-        
+        const slugParams = request.params.slug
         try {
             const quizData = await prisma.quiz.findFirst({
                 where: {

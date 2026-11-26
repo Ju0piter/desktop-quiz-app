@@ -1,13 +1,16 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import crypto from "crypto";
 import { prisma } from "../lib/prisma.js";
+import { SlugDataSchema } from '../schemas/quiz.js';
+import { JoinRoomParamsSchema, RoomParamsSchema, validateClientMessage, ClientMessage } from '../schemas/room.js';
 import { Question } from "../types/quiz.js";
 import { GameSession, startQuestion, activeGames, pauseGame, continueGame, broadcastGameState } from "../services/GameService.js";
-import { broadcast, broadcastPresence, roomClients, ClientMessage, Connection } from "../services/RoomService.js";
+import { broadcast, broadcastPresence, roomClients, Connection } from "../services/RoomService.js";
+import { error } from 'console';
 
-export async function roomRoutes (app: FastifyInstance) {
-    app.post<{Body: { slug: string}}> ("/api/create-room",{ onRequest: [app.authenticate] }, async (request, reply) => {
-        const { slug } = request.body  // сделать валидацию slug
+export const roomRoutes: FastifyPluginAsyncTypebox = async (app) => {
+    app.post ("/api/create-room", { onRequest: [app.authenticate], schema: {body: SlugDataSchema} }, async (request, reply) => {
+        const { slug } = request.body
         try {
             const quiz = await prisma.quiz.findFirst({ where: {slug}})
             if (!quiz) {
@@ -33,8 +36,10 @@ export async function roomRoutes (app: FastifyInstance) {
         
     })
 
-    app.post<{Body: { code: string, emoji_id: number, color_id: number, name: string}}> ("/api/join", async (request, reply) => {
-        const { name, emoji_id, color_id, code } = request.body  // сделать валидацию code и name
+    app.post ("/api/join", {
+        schema: {body: JoinRoomParamsSchema}
+    } , async (request, reply) => {
+        const { name, emoji_id, color_id, code } = request.body
         try {
             const room = await prisma.room.findFirst({ where: { code }})
             if (!room) {
@@ -58,15 +63,20 @@ export async function roomRoutes (app: FastifyInstance) {
         
     })    
 
-    app.get<{Params: {linkCode: string}}>("/ws/room/:linkCode", {websocket: true}, async (socket, request) => {
-        const { linkCode } = request.params   // сделать валидацию linkCode
+    app.get ("/ws/room/:linkCode", {websocket: true, schema: {params: RoomParamsSchema}}, async (socket, request) => {
+        const { linkCode } = request.params
         try {
-            let conn: Connection| null = null
+            let conn: Connection|null = null
             socket.on("message", async (raw) => {
-                let message: ClientMessage
+                let parsed: unknown
                 try {
-                    message = JSON.parse(raw.toString("utf-8"))
-                } catch { return }
+                    parsed = JSON.parse(raw.toString("utf-8"))
+                } catch {return}
+                if (!validateClientMessage.Check(parsed)) {
+                    socket.send(JSON.stringify({type: "error", message: "Invalid payload" }))
+                    return
+                }
+                const message: ClientMessage = parsed
                 const room = await prisma.room.findFirst({where: { linkCode }})
                 if (!room){
                     socket.close(1008, "Room not found")
@@ -93,10 +103,6 @@ export async function roomRoutes (app: FastifyInstance) {
                     }
                     if (!roomClients.has(linkCode)) {roomClients.set (linkCode, new Set())}
                     roomClients.get(linkCode)!.add(conn)
-                    // if (activeGames.has(linkCode) && conn.kind === "player") {
-                    //     activeGames.get(linkCode)?.answers.set(conn.playerId, null)
-                    //     activeGames.get(linkCode)?.leaderBoard.set(conn.playerId, 0)
-                    // }
                     if (activeGames.has(linkCode)) {
                         broadcastGameState(linkCode, conn.socket)
                         if (conn.kind === "player" && !activeGames.get(linkCode)?.leaderBoard.has(conn.playerId)) {
