@@ -165,7 +165,7 @@
 }
 
 .players-players {
-    padding: 20px;
+    padding: 10px;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -190,6 +190,17 @@
     border: 2px solid rgba(95, 95, 95, 0.699);  
     border-radius: 10px;
     font-size: 20px;
+}
+.players-player.on-change {
+    padding: 5px;
+    border-radius: 13px;
+    gap: 5px;
+    font-size: 0.7rem;
+}
+.player-emoji.on-change{
+    width: 25px;
+    height: 25px;
+    font-size: 12px;     
 }
 
 .start-banner{
@@ -383,14 +394,97 @@
     position: relative;
 }
 
-.master-player {
+.master-player-bar {
     position: absolute;
     top: 5%;
+    width: 300px;
+    height: 70px;
+    border-radius: 20px;
+    transition: transform 0.2s ease;
+}
+
+.master-change {
+    height: 295px;
+    backdrop-filter: blur(10px)
+}
+
+.master-player-pause{
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    top: 10px;
+    left: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;  
+    background: #ffd900ce;
+    border-radius: 14px;
+    border: 3px solid rgba(97, 97, 97, 0.486);
+    font-size: 1.7rem;
+    color: #e2e2e2;
+    font-weight: 700;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+}
+
+.master-player-change{
+    position: absolute;
+    width: 188px;
+    height: 50px;
+    top: 10px;
+    left: 100px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;  
+    background: #ff009dce;
+    border-radius: 14px;
+    border: 3px solid rgba(97, 97, 97, 0.486);    
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #e2e2e2;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.change-buttons{
+    width: 94%;
+    position: absolute;
+    top: 245px;
+}
+
+.master-change-back-button{
+    height: 37px;
+    width: 48%;
+    border-radius: 13px;
+    background: #ff0055ce;
+    border: 3px solid rgba(97, 97, 97, 0.486);
+    font-weight: 700;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.master-change-submit-button{
+    margin-left: 10px;
+    height: 37px;
+    width: 48%;
+    border-radius: 13px;
+    background: #0077ffce;
+    border: 3px solid rgba(97, 97, 97, 0.486);
+    font-weight: 700;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);    
+}
+
+.master-change-submit-button:disabled{
+   background: #0077ff36; 
+   color: rgba(255, 255, 255, 0.219);
+   border: 3px solid rgba(175, 175, 175, 0.13);
+}
+
+.correct-change-master{
+    border: 1px solid white;
 }
 
 .start-game-button {
     width: 250px;
-    /* margin-top: 20%; */
     padding: 15px;
     border: 0px;
     border-radius: 20px;

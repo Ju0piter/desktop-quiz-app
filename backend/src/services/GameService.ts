@@ -5,10 +5,12 @@ export interface GameSession {
     questions: Question[],
     currentIndex: number,
     phase: 'QUESTION' | 'REVEAL' | 'FINISHED',
-    endsAt: number;
+    endsAt: number|null,
     answers: Map<string, number|null>,
     leaderBoard: Map<string, number>,
     timer: NodeJS.Timeout | null,
+    paused: boolean,
+    remainingMs: number | null,
 }
 
 export const activeGames = new Map<string, GameSession>();
@@ -38,6 +40,60 @@ export function startQuestion(linkCode: string, game: GameSession) {
     }, durationMs)
 }
 
+export function pauseGame(linkCode: string) {
+    const game = activeGames.get(linkCode)
+    if (!game || game.paused || game.phase === 'FINISHED') return
+    if (!game.timer) return
+
+    clearTimeout(game.timer)
+    game.timer = null
+    game.remainingMs = Math.max(0, (game.endsAt ?? 0) - Date.now())
+    game.endsAt = null
+    game.paused = true
+
+    broadcast(linkCode, {
+        type: 'game-paused',
+        phase: game.phase,
+        remainingMs: game.remainingMs,
+    })
+}
+
+export function continueGame(linkCode: string) {
+    const game = activeGames.get(linkCode)
+    if (!game || !game.paused) return
+
+    const remaining = game.remainingMs ?? 0
+    game.paused = false
+    game.remainingMs = null
+    game.endsAt = Date.now() + remaining
+
+    broadcast(linkCode, {
+        type: 'game-continue',
+        phase: game.phase,
+        endsAt: game.endsAt,
+    })
+
+    if (game.phase === 'QUESTION') {
+        game.timer = setTimeout(() => revealAnswer(linkCode, game), remaining)
+    } else if (game.phase === 'REVEAL') {
+        game.timer = setTimeout(() => advance(linkCode, game), remaining)
+    }
+}
+
+function advance(linkCode: string, game: GameSession) {
+    game.currentIndex++
+    if (game.currentIndex < game.questions.length) {
+        startQuestion(linkCode, game)
+    } else {
+        game.phase = 'FINISHED'
+        const leaderBoard = [...game.leaderBoard.entries()]
+            .sort(([, a], [, b]) => b - a)
+            .map(([playerId, score]) => ({ playerId, score }))
+        broadcast(linkCode, { type: 'game-end', leaderBoard })
+        activeGames.delete(linkCode)
+    }
+}
+
 function revealAnswer(linkCode: string, game: GameSession) {
 
     if (game.timer) clearTimeout(game.timer)
@@ -61,17 +117,5 @@ function revealAnswer(linkCode: string, game: GameSession) {
         }
     })
 
-    game.timer = setTimeout(() => {
-        game.currentIndex++
-        if (game.currentIndex < game.questions.length) {
-            startQuestion(linkCode, game)
-        } else {
-            game.phase = 'FINISHED'
-            const leaderBoard = [...game.leaderBoard.entries()]
-                                .sort(([, scoreA], [, scoreB]) => scoreB - scoreA)
-                                .map(([playerId, score]) => ({ playerId, score }))
-            broadcast(linkCode, { type: 'game-end', leaderBoard })
-            activeGames.delete(linkCode)
-        }
-    }, revealDurationMs)
+    game.timer = setTimeout(() => advance(linkCode, game), revealDurationMs)
 }

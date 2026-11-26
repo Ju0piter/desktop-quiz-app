@@ -3,6 +3,9 @@ import { WebSocket } from "@fastify/websocket";
 export type ClientMessage = 
     | { type: "join", token: string}
     | { type: "start-game", token: string}
+    | { type: "pause-game", token: string}
+    | { type: "continue-game", token: string}
+    | { type: "change-master", token: string, new_master_id: string}
     | { type: "answer-to-the-question", token: string, question_id: number, answer_id: number}
 
 export type Connection = 

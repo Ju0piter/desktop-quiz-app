@@ -1,4 +1,5 @@
 import './HomePage.css'
+import { useState } from "react";
 
 
 import Topbar from '../../components/Topbar/Topbar'
@@ -7,6 +8,10 @@ import Quizlist from '../../components/Quizlist/Quizlist'
 
 
 export default function HomePage () {
+    
+    const [searchQuery, setSearchQuery] = useState("")
+    const [activeTag, setActiveTag] = useState("Все")
+
     return(
         <main className="home">
             <header className="home-header">
@@ -38,8 +43,16 @@ export default function HomePage () {
                     </div>
                 </div>
             </div>
-            <Searchbar />
-            <Quizlist />
+            <Searchbar
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                activeTag={activeTag}
+                setActiveTag={setActiveTag} 
+            />
+            <Quizlist 
+                searchQuery={searchQuery}
+                activeTag={activeTag}
+            />
         </main>
     )
 }

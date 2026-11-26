@@ -17,6 +17,9 @@ type ServerMessage =
     | { type: "new-question", index: number, total: number, text: string, options: Option[], endsAt: number }
     | { type: "round-result", correctAnswerId: number, endsAt: number }
     | { type: "game-end", leaderBoard: {playerId: string, score: number}[] }
+    | { type: "you_new_master"}
+    | { type: "game-paused", phase: string, remainingMs: number}
+    | { type: "game-continue", phase: string, endsAt: number}
 
 export default function RoomPage () {
     const wsRef = useRef<WebSocket|null>(null)
@@ -46,6 +49,9 @@ export default function RoomPage () {
     const [answerIsSented, setAnswerIsSented] = useState<boolean> (false)
     const [leaderBoard, setLeaderBoard] = useState<{playerId: string, score: number} []> ([])
     const [isLeaderBoardStarted, setIsLeaderBoardStarted] = useState<boolean> (false)
+    const [isMasterChange, setIsMasterChange] = useState<boolean> (false)
+    const [masterChangeId, setMasterChangeId] = useState<string|null> (null)
+    const [isPaused, setIsPaused] = useState<boolean> (false)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -57,7 +63,6 @@ export default function RoomPage () {
         const protocol = location.protocol === "https:" ? "wss" : "ws"
         const ws = new WebSocket(`${protocol}://${location.host}/ws/room/${linkCode}`)
         wsRef.current = ws
-        console.log(storedToken)
         ws.onopen = () => ws.send(JSON.stringify({ type: 'join', token: storedToken }))
         ws.onmessage = (e) => {
             const msg: ServerMessage = JSON.parse(e.data)
@@ -99,7 +104,17 @@ export default function RoomPage () {
                 setLeaderBoard(msg.leaderBoard)
                 setIsLeaderBoardStarted(true)
             }
-
+            if(msg.type === 'you_new_master') {
+                setIsMasterPlayer(true)
+            }
+            if(msg.type === "game-paused") {
+                setIsPaused(true)
+                setTimerQuestionEndsAt(0)
+            }
+            if(msg.type === "game-continue") {
+                setIsPaused(false)
+                setTimerQuestionEndsAt(msg.endsAt)
+            }
         }
         return () => {
             ws.close()
@@ -110,7 +125,7 @@ export default function RoomPage () {
 
     return (
         <div className="room-page">
-            {role && role === 'host' && (
+            {role && role === 'host' && !isPaused && (
                 <div className="host-page">
                     <div className={`room-page-main ${isGameStarted? "" : "visible"}`}>
                         <OrientationOverlay/>
@@ -161,7 +176,7 @@ export default function RoomPage () {
                             <div className="players-list card brd">
                                 <div className="players-info">
                                     <div className="players-info-text">ИГРОКИ</div>
-                                    <div className="players-info-count">{players.length} / 20</div>
+                                    <div className="players-info-count">{players.length} / 10</div>
                                 </div>
                                 <div className="players-players">
                                     {players.map((player, index) => (
@@ -229,17 +244,53 @@ export default function RoomPage () {
 
                 </div>
             )}
+            {isPaused && (
+                <div className="pause">ПАУЗА</div>
+            )}
             {/* ЭКРАН ИГРОКА------------------------------------------------------------------------------ */}
             {role && role === "player" && (
                 <div className="room-page-player">
                     {/* МАСТЕР-БАР */}
                     {isMasterPlayer && (
-                        <div className="master-player">
-                            <div className="master-player-bar brd">управление игрой</div>
+                        <div className={`master-player-bar brd card ${isMasterChange? "master-change" : ""}`}>
+                            <button className={`master-player-pause ${!isMasterChange? "visible" : ""}`} disabled={!isQuestionsStarted} onClick={(() => {
+                                if (wsRef.current?.readyState === WebSocket.OPEN){
+                                    if (isPaused) wsRef.current?.send(JSON.stringify({ type: 'continue-game', token: storedToken }))
+                                    else wsRef.current?.send(JSON.stringify({ type: 'pause-game', token: storedToken }))                                                     
+                                }
+                            })}>{`${!isPaused? "l l" : "▶"}`}</button>
+                            <button className={`master-player-change ${!isMasterChange? "visible" : ""}`} onClick={()=>{setMasterChangeId(null); setIsMasterChange(true)}}>ПЕРЕДАТЬ УПРАВЛЕНИЕ</button>
+                            {isMasterChange && (
+                                    <div className="players-players">
+                                        {players.filter((player) => player.is_master_player !== true).map((player, index) => (
+                                            
+                                            <div className={`players-player on-change card brd ${masterChangeId === player.playerId? "correct-change-master":""}`} key={index} onClick={(()=> (setMasterChangeId(player.playerId)))}>
+                                                <div className="player-emoji on-change brd" style={{backgroundColor: PLAYER_COLORS[player.color_id]}}>{EMOJIS[player.emoji_id]}</div>
+                                                {player.name}
+                                            </div>
+                                        ))}
+
+                                        <div className="change-buttons">
+                                            <button className="master-change-back-button" onClick={()=>(setIsMasterChange(false))}>ОТМЕНА</button>
+                                            <button className="master-change-submit-button" disabled={!masterChangeId}
+                                                onClick={()=>{
+                                                    setIsMasterChange(false)
+                                                    setIsMasterPlayer(false)
+                                                    if (wsRef.current?.readyState === WebSocket.OPEN && masterChangeId){
+                                                        wsRef.current?.send(JSON.stringify({ type: 'change-master', token: storedToken, new_master_id: masterChangeId }))                                                
+                                                    }
+                                                }}>
+                                                ПЕРЕДАТЬ
+                                            </button>
+                                        </div>
+                                    </div>
+
+      
+                            )}
                         </div>
                     )}
                     {/* КНОПКА СТАРТА */}
-                    {!isGameStarted && isMasterPlayer && (
+                    {!isGameStarted && isMasterPlayer && !isMasterChange && (
                         <button className="start-game-button"
                             onClick={(() => {
                                 if (wsRef.current?.readyState === WebSocket.OPEN){
@@ -249,7 +300,7 @@ export default function RoomPage () {
                         </button>
                     )}
                     {/* ВОПРОСЫ */}
-                    {isQuestionsStarted && (
+                    {isQuestionsStarted && !isPaused && (
                         <div className="room-page-player-main">
                             <div className="questions-banner-main mobile-bunner card brd" key={indexQuestion}>
                                 <div className="options">

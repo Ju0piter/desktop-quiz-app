@@ -3,23 +3,38 @@
 }
 
 .quiz-list-quizzes{
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 420px);
     justify-content: center;
+    gap: 30px;
 }
 
 .quiz-card {
-    margin: auto;
-    margin-top: 2%;
     height: 300px;
-    width: 450px;
+    width: 100%;
     border-radius: 20px;
     background: rgba(68, 68, 68, 0.212);
     cursor: pointer;
+    position: relative;
 }
 
 .quiz-card-top{
     height: 66%;
+}
+
+.quiz-card-badge{
+    position: absolute;
+    top: 15px;
+}
+
+.badge{
+    padding: 5px;
+    padding-inline: 10px;
+    margin-left: 10px;
+    background: linear-gradient(45deg, #008cff, #ff00ff);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    font-weight: 700;
 }
 
 .quiz-card-main{

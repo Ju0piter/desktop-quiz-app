@@ -13,7 +13,7 @@
     outline: none;
     transition: all 0.4s ease;
     height: 56px;
-    margin-top: 2%;
+    /* margin-top: 2%; */
 }
 
 .searchbar-input:focus{
@@ -27,12 +27,13 @@
     margin-left: 2%;
     font-weight: 700;
     transition: all 0.4s ease;
-    margin-top: 2%;
+    /* margin-top: 2%; */
     cursor: pointer
 }
 
 .searchbar-tag:hover{
     border-color: rgba(240, 248, 255, 0.514);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
 }
 
 .searchbar-tag.active {
@@ -46,5 +47,6 @@
     }
     .searchbar-tag{
         min-width: 100px;
+        margin-top: 2%;
     }
 }

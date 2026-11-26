@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import crypto from "crypto";
 import { prisma } from "../lib/prisma.js";
 import { Question } from "../types/quiz.js";
-import { GameSession, startQuestion, activeGames } from "../services/GameService.js";
+import { GameSession, startQuestion, activeGames, pauseGame, continueGame } from "../services/GameService.js";
 import { broadcast, broadcastPresence, roomClients, ClientMessage, Connection } from "../services/RoomService.js";
 
 export async function roomRoutes (app: FastifyInstance) {
@@ -147,10 +147,12 @@ export async function roomRoutes (app: FastifyInstance) {
                                 questions,
                                 currentIndex: 0,
                                 phase: "QUESTION",
-                                endsAt: 0,
+                                endsAt: null,
                                 answers: new Map(players.map((playerId) => [playerId, null])),
                                 leaderBoard: new Map(players.map((playerId) => [playerId, 0])),
-                                timer: null
+                                timer: null,
+                                paused: false,
+                                remainingMs: null
                             }
                             activeGames.set(linkCode, session)
                             broadcast(linkCode, { type: 'show-banner' })
@@ -162,11 +164,45 @@ export async function roomRoutes (app: FastifyInstance) {
                     }
                     return
                 }
+                if (message.type === "change-master") {
+                    if (message.token === room.hostToken) return
+                    const player = await prisma.player.findUnique({where:{token: message.token}})
+                    const oldMaster = [...(roomClients.get(linkCode)) ?? []].find(c => c.kind === "player" && c.playerId === player?.id && c.is_master_player)
+                    const newMaster = [...(roomClients.get(linkCode)) ?? []].find(c => c.kind === "player" && c.playerId === message.new_master_id)
+                    if (player && oldMaster?.kind === "player" && newMaster?.kind === "player") {
+                        oldMaster.is_master_player = false
+                        newMaster.is_master_player = true
+                        newMaster.socket.send(JSON.stringify({
+                            type: "you_new_master",
+                        }))
+                        broadcastPresence(linkCode)
+                    }
+                }
+                if (message.type === "pause-game") {
+                    if (message.token === room.hostToken) return
+                    const player = await prisma.player.findUnique({where:{token: message.token}})
+                    if (player && [...(roomClients.get(linkCode)) ?? []].some(c => c.kind === "player" && c.playerId === player.id && c.is_master_player)) {
+                        if (activeGames.has(linkCode) && !activeGames.get(linkCode)?.paused ){
+                            pauseGame(linkCode)
+                        }
+                    }
+                }
+                if (message.type === "continue-game") {
+                    if (message.token === room.hostToken) return
+                    const player = await prisma.player.findUnique({where:{token: message.token}})
+                    if (player && [...(roomClients.get(linkCode)) ?? []].some(c => c.kind === "player" && c.playerId === player.id && c.is_master_player)) {
+                        if (activeGames.has(linkCode) && activeGames.get(linkCode)?.paused ){
+                            continueGame(linkCode)
+                        }
+                    }
+
+                }
                 if (message.type === "answer-to-the-question") {
                     if (!activeGames.has(linkCode) || message.token === room.hostToken) return
                     const player = await prisma.player.findUnique({where:{token: message.token}})
                     if (player && [...(roomClients.get(linkCode)) ?? []].some(c => c.kind === "player" && c.playerId === player.id)) {
-                        if (activeGames.get(linkCode)!.endsAt > Date.now() 
+                        if (activeGames.get(linkCode)!.phase === "QUESTION"
+                            && !activeGames.get(linkCode)!.paused
                             && activeGames.get(linkCode)!.currentIndex === message.question_id 
                             && activeGames.get(linkCode)!.answers.get(player.id) === null) {
                                 activeGames.get(linkCode)!.answers.set(player.id, message.answer_id)
