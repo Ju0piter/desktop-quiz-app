@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import crypto from "crypto";
 import { prisma } from "../lib/prisma.js";
 import { Question } from "../types/quiz.js";
-import { GameSession, startQuestion, activeGames, pauseGame, continueGame } from "../services/GameService.js";
+import { GameSession, startQuestion, activeGames, pauseGame, continueGame, broadcastGameState } from "../services/GameService.js";
 import { broadcast, broadcastPresence, roomClients, ClientMessage, Connection } from "../services/RoomService.js";
 
 export async function roomRoutes (app: FastifyInstance) {
@@ -93,9 +93,16 @@ export async function roomRoutes (app: FastifyInstance) {
                     }
                     if (!roomClients.has(linkCode)) {roomClients.set (linkCode, new Set())}
                     roomClients.get(linkCode)!.add(conn)
-                    if (activeGames.has(linkCode) && conn.kind === "player") {
-                        activeGames.get(linkCode)?.answers.set(conn.playerId, null)
-                        activeGames.get(linkCode)?.leaderBoard.set(conn.playerId, 0)
+                    // if (activeGames.has(linkCode) && conn.kind === "player") {
+                    //     activeGames.get(linkCode)?.answers.set(conn.playerId, null)
+                    //     activeGames.get(linkCode)?.leaderBoard.set(conn.playerId, 0)
+                    // }
+                    if (activeGames.has(linkCode)) {
+                        broadcastGameState(linkCode, conn.socket)
+                        if (conn.kind === "player" && !activeGames.get(linkCode)?.leaderBoard.has(conn.playerId)) {
+                            activeGames.get(linkCode)?.answers.set(conn.playerId, null)
+                            activeGames.get(linkCode)?.leaderBoard.set(conn.playerId, 0)
+                        }
                     }
                     socket.send(JSON.stringify(conn.kind === "host"?
                         {
@@ -146,7 +153,7 @@ export async function roomRoutes (app: FastifyInstance) {
                             const session: GameSession = {
                                 questions,
                                 currentIndex: 0,
-                                phase: "QUESTION",
+                                phase: "BANNER",
                                 endsAt: null,
                                 answers: new Map(players.map((playerId) => [playerId, null])),
                                 leaderBoard: new Map(players.map((playerId) => [playerId, 0])),

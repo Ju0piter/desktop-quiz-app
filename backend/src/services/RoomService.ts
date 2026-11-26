@@ -34,3 +34,8 @@ export function broadcastPresence(linkCode: string) {
     .map(c => ({ playerId: c.playerId, name: c.name, emoji_id: c.emoji_id, color_id: c.color_id, is_master_player: c.is_master_player }))
     broadcast(linkCode, { type: 'presence', players })
 }
+
+export function singleBroadcast(socket: WebSocket, msg: object) {
+    const raw = JSON.stringify(msg)
+    if (socket.readyState === 1) socket.send(raw)
+}

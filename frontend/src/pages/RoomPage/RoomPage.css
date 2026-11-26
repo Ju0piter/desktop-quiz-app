@@ -570,3 +570,11 @@
     visibility: visible;
     transform: translateY(0);    
 }
+
+.pause {
+    position: absolute;
+    top: 50%;
+    font-size: 2rem;
+    font-weight: 700;
+    
+}

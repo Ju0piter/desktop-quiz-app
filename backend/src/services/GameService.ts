@@ -1,10 +1,11 @@
 import { Question } from "../types/quiz.js";
-import { broadcast } from "../services/RoomService.js";
+import { broadcast, singleBroadcast } from "../services/RoomService.js";
+import { WebSocket } from "@fastify/websocket";
 
 export interface GameSession {
     questions: Question[],
     currentIndex: number,
-    phase: 'QUESTION' | 'REVEAL' | 'FINISHED',
+    phase: 'BANNER' | 'QUESTION' | 'REVEAL' | 'FINISHED',
     endsAt: number|null,
     answers: Map<string, number|null>,
     leaderBoard: Map<string, number>,
@@ -77,6 +78,39 @@ export function continueGame(linkCode: string) {
         game.timer = setTimeout(() => revealAnswer(linkCode, game), remaining)
     } else if (game.phase === 'REVEAL') {
         game.timer = setTimeout(() => advance(linkCode, game), remaining)
+    }
+}
+
+export function broadcastGameState(linkCode: string, socket: WebSocket) {
+    const game = activeGames.get(linkCode)
+    if (!game) return
+    const question = game.questions[game.currentIndex]
+    singleBroadcast(socket, {
+        type: 'start-questions'
+    })
+    if (game.phase !== "BANNER") {
+        singleBroadcast(socket, {
+            type: 'new-question',
+            index: game.currentIndex,
+            total: game.questions.length,
+            text: question.question,
+            options: question.options,
+            endsAt: game.endsAt,
+        })
+    }
+    if (game.phase === 'REVEAL') {
+        singleBroadcast(socket, {
+            type: 'round-result',
+            correctAnswerId: question.answer_id,
+            endsAt: game.endsAt,
+        })
+    }
+    if (game.paused) {
+        singleBroadcast(socket, {
+            type: 'game-paused',
+            phase: game.phase,
+            remainingMs: game.remainingMs,
+        })
     }
 }
 

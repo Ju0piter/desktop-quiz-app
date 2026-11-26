@@ -82,7 +82,7 @@ export default function RoomPage () {
                     setShowStartBanner(false)
                 }, 18_000)
             }
-            if (msg.type === 'start-questions') setIsQuestionsStarted(true)
+            if (msg.type === 'start-questions') {setIsQuestionsStarted(true);setIsGameStarted(true)}
             if (msg.type === 'new-question') {
                 setIndexQuestion(msg.index)
                 setQuestion({
@@ -205,7 +205,7 @@ export default function RoomPage () {
                         </div>
                     </div>
                     {/* ВОПРОСЫ */}
-                    <div className={`questions-banner ${isQuestionsStarted && !isLeaderBoardStarted? "visible" : ""}`}>
+                    <div className={`questions-banner ${isQuestionsStarted && !isLeaderBoardStarted && question? "visible" : ""}`}>
                         <div className="questions-banner-main card brd" key={indexQuestion}>
                             <div className="question-number gradient-text">ВОПРОС {indexQuestion + 1}</div>
                             <div className="questions-banner-text">{question?.question}</div>
@@ -245,7 +245,7 @@ export default function RoomPage () {
                 </div>
             )}
             {isPaused && (
-                <div className="pause">ПАУЗА</div>
+                <div className="pause gradient-text">ИГРА ПРИОСТАНОВЛЕНА</div>
             )}
             {/* ЭКРАН ИГРОКА------------------------------------------------------------------------------ */}
             {role && role === "player" && (
@@ -300,7 +300,7 @@ export default function RoomPage () {
                         </button>
                     )}
                     {/* ВОПРОСЫ */}
-                    {isQuestionsStarted && !isPaused && (
+                    {isQuestionsStarted && !isPaused && !isMasterChange && question && (
                         <div className="room-page-player-main">
                             <div className="questions-banner-main mobile-bunner card brd" key={indexQuestion}>
                                 <div className="options">
