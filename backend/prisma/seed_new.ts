@@ -20,6 +20,7 @@ const quiz =
         category: "география",
         difficulty: "Medium",
         duration: 20,
+        is_popular: true,
     }
 
 const quiz2 = 
@@ -32,6 +33,8 @@ const quiz2 =
         category: "литература",
         difficulty: "Medium",
         duration: 20,
+        is_popular: true,
+        is_new: true,
     }
 
 const quiz3 = 
@@ -44,6 +47,7 @@ const quiz3 =
         category: "новый год",
         difficulty: "Medium",
         duration: 20,
+        is_new: true,
     }
 
 const questions = [
@@ -340,29 +344,29 @@ async function main() {
     for (const question of questions) {
         await prisma.question.create({
             data:{
-                quizId: 3,
-                question: question.question,
-                options: {create: question.options.map((option) => ({ option }))},
-                answer_id: question.answer_id,
-                is_sample: question.is_sample
-            }
-        });
-    }
-    for (const question of questions2) {
-        await prisma.question.create({
-            data:{
-                quizId: 4,
-                question: question.question,
-                options: {create: question.options.map((option) => ({ option }))},
-                answer_id: question.answer_id,
-                is_sample: question.is_sample
-            }
-        });
-    }
-    for (const question of questions2) {
-        await prisma.question.create({
-            data:{
                 quizId: 5,
+                question: question.question,
+                options: {create: question.options.map((option) => ({ option }))},
+                answer_id: question.answer_id,
+                is_sample: question.is_sample
+            }
+        });
+    }
+    for (const question of questions2) {
+        await prisma.question.create({
+            data:{
+                quizId: 6,
+                question: question.question,
+                options: {create: question.options.map((option) => ({ option }))},
+                answer_id: question.answer_id,
+                is_sample: question.is_sample
+            }
+        });
+    }
+    for (const question of questions3) {
+        await prisma.question.create({
+            data:{
+                quizId: 7,
                 question: question.question,
                 options: {create: question.options.map((option) => ({ option }))},
                 answer_id: question.answer_id,
